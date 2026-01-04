@@ -11,14 +11,10 @@ function CustomScrollbar({ hidden = false }: CustomScrollbarProps) {
   const [thumbTop, setThumbTop] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [isLight, setIsLight] = useState(true);
-  const [isEdge, setIsEdge] = useState(false);
+  const isEdge =
+    typeof navigator !== "undefined" && navigator.userAgent.includes("Edg/");
   const dragStartY = useRef(0);
   const dragStartScroll = useRef(0);
-
-  // Detect Edge browser on mount
-  useEffect(() => {
-    setIsEdge(navigator.userAgent.includes("Edg/"));
-  }, []);
 
   useEffect(() => {
     const updateScrollbar = () => {
