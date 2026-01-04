@@ -87,9 +87,6 @@ const decode = (codes: number[]): string => {
 
 function App() {
   const [activePreview, setActivePreview] = useState<PreviewType>("arbitrage");
-  const [activeSection, setActiveSection] = useState<"projects" | "experience">(
-    "projects",
-  );
   const [hiddenScrollbar, setHiddenScrollbar] = useState(false);
   const isScrolling = useRef(false);
   const currentSection = useRef(0);
@@ -281,7 +278,6 @@ function App() {
     e: React.MouseEvent<HTMLAnchorElement>,
     _targetId: string,
     preview?: PreviewType,
-    section?: "projects" | "experience",
   ) => {
     e.preventDefault();
     // Always scroll to the index-section for consistency
@@ -295,9 +291,6 @@ function App() {
     }
     if (preview) {
       setActivePreview(preview);
-    }
-    if (section) {
-      setActiveSection(section);
     }
   };
 
@@ -416,18 +409,14 @@ function App() {
             <a
               href="#projects"
               className="nav-btn"
-              onClick={(e) =>
-                handleNavClick(e, "projects", "arbitrage", "projects")
-              }
+              onClick={(e) => handleNavClick(e, "projects", "arbitrage")}
             >
               Projects
             </a>
             <a
               href="#experience"
               className="nav-btn"
-              onClick={(e) =>
-                handleNavClick(e, "experience", "instructor", "experience")
-              }
+              onClick={(e) => handleNavClick(e, "experience", "instructor")}
             >
               Experience
             </a>
@@ -445,20 +434,14 @@ function App() {
       <section className="index-section" id="projects">
         <div className="index-list">
           {/* Projects Section */}
-          <div
-            className="index-header"
-            onMouseOver={() => setActiveSection("projects")}
-          >
-            Projects
-          </div>
+          <div className="index-header">Projects</div>
 
           {projects.map((project) => (
             <div
               key={project.id}
-              className={`index-item ${activePreview === project.id ? "active" : ""} ${activeSection !== "projects" ? "collapsed" : ""}`}
+              className={`index-item ${activePreview === project.id ? "active" : ""}`}
               onMouseOver={() => {
                 setActivePreview(project.id as PreviewType);
-                setActiveSection("projects");
               }}
             >
               <span>
@@ -469,19 +452,14 @@ function App() {
           ))}
 
           {/* Experience Section */}
-          <div
-            className="index-header"
-            id="experience"
-            onMouseOver={() => setActiveSection("experience")}
-          >
+          <div className="index-header" id="experience">
             Experience
           </div>
 
           <div
-            className={`index-item ${activePreview === "instructor" ? "active" : ""} ${activeSection !== "experience" ? "collapsed" : ""}`}
+            className={`index-item ${activePreview === "instructor" ? "active" : ""}`}
             onMouseOver={() => {
               setActivePreview("instructor");
-              setActiveSection("experience");
             }}
           >
             <span>01 // COMPUTING INSTRUCTOR</span>
@@ -489,10 +467,9 @@ function App() {
           </div>
 
           <div
-            className={`index-item ${activePreview === "tutor" ? "active" : ""} ${activeSection !== "experience" ? "collapsed" : ""}`}
+            className={`index-item ${activePreview === "tutor" ? "active" : ""}`}
             onMouseOver={() => {
               setActivePreview("tutor");
-              setActiveSection("experience");
             }}
           >
             <span>02 // PRIVATE TUTOR</span>
