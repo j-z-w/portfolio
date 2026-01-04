@@ -324,11 +324,10 @@
     font-weight: 800;
     text-transform: uppercase;
     border-bottom: var(--border-width) solid var(--border-color);
-    border-top: var(--border-width) solid var(--border-color);
 }
 
-.index-header:not(:first-child) {
-    margin-top: 1.5rem;
+.index-header:first-child {
+    border-top: var(--border-width) solid var(--border-color);
 }
 
 .index-item {
