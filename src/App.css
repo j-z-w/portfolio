@@ -324,35 +324,10 @@
     font-weight: 800;
     text-transform: uppercase;
     border-bottom: var(--border-width) solid var(--border-color);
-    cursor: pointer;
-    transition:
-        color 0.2s ease,
-        background 0.2s ease,
-        padding-left 0.2s ease;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
 }
 
 .index-header:not(:first-child) {
     /* No extra margin - headers stack naturally */
-}
-
-.index-header:hover {
-    background: var(--text-color);
-    color: var(--bg-color);
-    padding-left: 3rem;
-}
-
-.index-header::after {
-    content: "→";
-    opacity: 1;
-    transition: opacity 0.2s ease;
-}
-
-.index-header:hover::after {
-    opacity: 0;
 }
 
 .index-item {
