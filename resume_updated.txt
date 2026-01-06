@@ -1,0 +1,71 @@
+JUSTIN WEI
+(778) 858-9909 | justin.z.wei@outlook.com | linkedin.com/in/justinzwei | github.com/j-z-w | Coquitlam, BC
+
+================================================================================
+SKILLS PROFILE
+================================================================================
+
+Languages:        Python, Go, TypeScript, Rust, SQL, HTML/CSS
+Frameworks:       React, Node.js, FastAPI, Express
+Databases:        PostgreSQL, Redis
+Tools:            Git, Docker, Linux, WebSockets
+Concepts:         REST APIs, Real-time Systems, Data Structures, Algorithms, Agile Development
+
+================================================================================
+TECHNICAL PROJECTS
+================================================================================
+
+Arbot - Real-Time Arbitrage Detection Platform | Rust, Python, React, FastAPI, PostgreSQL
+github.com/j-z-w/arbot | arbot.app                                              2024 - Present
+
+• Architected and deployed a full-stack arbitrage detection system processing real-time odds data across 11 sports from multiple prediction markets and sportsbooks.
+• Engineered a Rust-based matching engine using PyO3, reducing event-pairing latency by 30x compared to the original Python implementation.
+• Designed fuzzy matching algorithms with time-based correlation to accurately pair events across platforms with inconsistent naming conventions.
+• Implemented order book depth analysis to calculate liquidity-adjusted odds and filter opportunities by profitability thresholds.
+• Built responsive React dashboard with real-time updates, JWT authentication, role-based admin console, and automated Discord notifications.
+
+Redis-Compatible Data Store (In Progress) | Rust, TCP/WebSocket, Lock-free Concurrency
+github.com/j-z-w/redis-store                                                    2024 - Present
+
+• Developing a high-performance in-memory data store with Redis protocol compatibility for sub-millisecond state queries.
+• Implementing lock-free data structures (DashMap) and exploring SIMD-accelerated parsing for optimal throughput.
+• Building dual-protocol support (TCP/WebSocket) with custom command set and pub/sub notifications for real-time updates.
+
+Crypto Escrow Web Application | Go, React, LitecoinJS
+github.com/j-z-w/crypto-escrow                                                  2024
+
+• Developed a full-stack MVP enabling secure peer-to-peer trading on the Litecoin testnet with automated escrow settlement.
+• Implemented Go backend handling wallet generation, transaction signing, and conditional fund release upon trade confirmation.
+• Built React frontend with real-time transaction status updates and intuitive trading interface.
+
+================================================================================
+EXPERIENCE
+================================================================================
+
+Computing Instructor
+Chinese Language and Culture Institute (SD43), Coquitlam, BC                    October 2025 - Present
+
+• Instruct classes of 10-15 students in Python and Scratch programming fundamentals, developing curriculum focused on computational thinking and problem-solving.
+• Provide individualized mentorship and code reviews, helping students debug projects and understand core programming concepts.
+• Evaluate student progress through practical assessments, delivering constructive feedback to support skill development.
+
+Private Tutor
+Self-Employed, Coquitlam, BC                                                     September 2021 - December 2024
+
+• Provided one-on-one tutoring in Calculus and Pre-calculus, adapting teaching methods to individual learning styles.
+• Collaborated with teachers and parents to track student progress, resulting in improved grades and comprehension.
+
+================================================================================
+EDUCATION
+================================================================================
+
+Bachelor of Science in Computer Science (Candidate)
+Simon Fraser University, Burnaby, BC                                             Expected 2028
+
+Relevant Coursework: Data Structures, Algorithms, Discrete Mathematics, Computer Systems
+
+================================================================================
+CERTIFICATIONS
+================================================================================
+
+Bronze Cross / CPR-C | Lifesaving Society                                        2020
