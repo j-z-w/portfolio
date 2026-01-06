@@ -356,7 +356,7 @@ function App() {
                   <h3 className="stack-category">LANGUAGES</h3>
                   <div className="stack-group">
                     <span className="stack-group-label">Confident:</span>
-                    <span>Python, TypeScript</span>
+                    <span>Python</span>
                   </div>
                   <div className="stack-group">
                     <span className="stack-group-label">Proficient:</span>
@@ -364,33 +364,29 @@ function App() {
                   </div>
                   <div className="stack-group">
                     <span className="stack-group-label">Learning:</span>
-                    <span>Rust</span>
+                    <span>TypeScript, Rust</span>
                   </div>
                 </div>
                 <div className="stack-column">
                   <h3 className="stack-category">FRAMEWORKS</h3>
                   <div className="stack-group">
-                    <span className="stack-group-label">Confident:</span>
+                    <span className="stack-group-label">Proficient:</span>
                     <span>React, Node.js</span>
                   </div>
                   <div className="stack-group">
-                    <span className="stack-group-label">Proficient:</span>
-                    <span>Express</span>
-                  </div>
-                  <div className="stack-group">
                     <span className="stack-group-label">Learning:</span>
-                    <span>Next.js</span>
+                    <span>Express, Next.js</span>
                   </div>
                 </div>
                 <div className="stack-column">
                   <h3 className="stack-category">TOOLS</h3>
                   <div className="stack-group">
                     <span className="stack-group-label">Confident:</span>
-                    <span>Git, Docker</span>
+                    <span>Git</span>
                   </div>
                   <div className="stack-group">
                     <span className="stack-group-label">Proficient:</span>
-                    <span>PostgreSQL</span>
+                    <span>Docker, PostgreSQL</span>
                   </div>
                   <div className="stack-group">
                     <span className="stack-group-label">Learning:</span>
