@@ -316,17 +316,30 @@ function App() {
           <div className="cell about-cell">
             <h2 className="about-heading">ABOUT ME</h2>
             <p>
-              Building deterministic flows for decentralized markets. Focused on
-              clean interfaces and high-performance primitives.
+              CS student building real-time systems and backend infrastructure.
+              Currently working on arbitrage detection across prediction markets
+              and a high-performance data store in Rust. I enjoy digging into
+              complex problems, writing clean code, and learning how things work
+              under the hood.
             </p>
-            <a
-              href={`https://github.com/${decode(obfuscatedContact.github)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="about-github-link"
-            >
-              github.com/{decode(obfuscatedContact.github)}
-            </a>
+            <div className="about-links">
+              <a
+                href={`https://github.com/${decode(obfuscatedContact.github)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="about-github-link"
+              >
+                github.com/{decode(obfuscatedContact.github)}
+              </a>
+              <a
+                href="https://www.linkedin.com/in/justinzwei/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="about-github-link"
+              >
+                linkedin.com/in/justinzwei
+              </a>
+            </div>
           </div>
 
           {/* Row 3: Stack */}
@@ -621,6 +634,14 @@ function App() {
               className="contact-link"
             >
               {decode(obfuscatedContact.email2)} (SFU)
+            </a>
+            <a
+              href="https://www.linkedin.com/in/justinzwei/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="contact-link"
+            >
+              linkedin.com/in/justinzwei
             </a>
             <a
               href={`tel:${decode(obfuscatedContact.phoneHref)}`}
