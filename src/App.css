@@ -306,6 +306,51 @@
     font-size: 1.15rem;
 }
 
+/* Stack arrows */
+.stack-arrows {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.stack-arrows-left {
+    left: 3rem;
+}
+
+.stack-arrows-right {
+    right: 3rem;
+}
+
+.rising-arrow {
+    position: absolute;
+    font-size: 1.5rem;
+    color: var(--text-color);
+    animation: riseUp 2s linear infinite;
+}
+
+@keyframes riseUp {
+    0% {
+        bottom: -2.5rem;
+        opacity: 1;
+    }
+    100% {
+        bottom: calc(100% + 1.5rem);
+        opacity: 1;
+    }
+}
+
+.stack-cell:hover .stack-arrows {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
 /* --- BOTTOM SECTION: THE INDEX --- */
 .index-section {
     min-height: 100vh;
@@ -632,6 +677,28 @@
     background: var(--text-color);
     color: var(--bg-color);
     cursor: pointer;
+}
+
+.return-to-top-btn {
+    margin-top: 2rem;
+    padding: 1rem 2rem;
+    border: var(--border-width) solid var(--border-color);
+    background: var(--bg-color);
+    color: var(--text-color);
+    font-family: var(--font-main);
+    font-weight: 800;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.return-to-top-btn:hover {
+    background: var(--text-color);
+    color: var(--bg-color);
 }
 
 .resume-embed-wrapper {
