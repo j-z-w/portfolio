@@ -80,7 +80,7 @@ function CustomScrollbar({ hidden = false }: CustomScrollbarProps) {
       window.removeEventListener("scroll", updateScrollbar);
       window.removeEventListener("resize", updateScrollbar);
     };
-  }, [isEdge]);
+  }, [isEdge, thumbTop]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();

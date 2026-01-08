@@ -14,8 +14,8 @@ function PdfViewer({ url }: PdfViewerProps) {
   const thumbRef = useRef<HTMLDivElement>(null);
   const [zoom, setZoom] = useState(1);
   const baseScaleRef = useRef(1);
-  const renderTaskRef = useRef<any>(null);
-  const pdfDocRef = useRef<any>(null);
+  const renderTaskRef = useRef<pdfjsLib.RenderTask | null>(null);
+  const pdfDocRef = useRef<pdfjsLib.PDFDocumentProxy | null>(null);
   const currentUrlRef = useRef<string>(url);
 
   // Custom scrollbar state
@@ -48,7 +48,7 @@ function PdfViewer({ url }: PdfViewerProps) {
 
   useEffect(() => {
     let isCancelled = false;
-    let loadingTask: any = null;
+    let loadingTask: pdfjsLib.PDFDocumentLoadingTask | null = null;
 
     // Track URL changes to invalidate cached PDF
     if (currentUrlRef.current !== url) {
@@ -177,9 +177,14 @@ function PdfViewer({ url }: PdfViewerProps) {
 
         // Update scrollbar after render
         updateScrollbar();
-      } catch (error: any) {
+      } catch (error: unknown) {
         // Ignore cancellation errors
-        if (error?.name !== "RenderingCancelledException") {
+        if (
+          error &&
+          typeof error === "object" &&
+          "name" in error &&
+          error.name !== "RenderingCancelledException"
+        ) {
           console.error("Error rendering PDF:", error);
         }
       }
