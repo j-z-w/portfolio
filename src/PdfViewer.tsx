@@ -157,6 +157,7 @@ function PdfViewer({ url }: PdfViewerProps) {
           canvasContext: context,
           viewport: renderViewport,
           background: "white",
+          canvas: canvas,
         });
         renderTaskRef.current = renderTask;
 
