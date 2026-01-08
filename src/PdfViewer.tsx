@@ -14,8 +14,9 @@ function PdfViewer({ url }: PdfViewerProps) {
   const thumbRef = useRef<HTMLDivElement>(null);
   const [zoom, setZoom] = useState(1);
   const baseScaleRef = useRef(1);
-  const pageRef = useRef<any>(null);
   const renderTaskRef = useRef<any>(null);
+  const pdfDocRef = useRef<any>(null);
+  const currentUrlRef = useRef<string>(url);
 
   // Custom scrollbar state
   const [thumbHeight, setThumbHeight] = useState(0);
@@ -47,74 +48,185 @@ function PdfViewer({ url }: PdfViewerProps) {
 
   useEffect(() => {
     let isCancelled = false;
+    let loadingTask: any = null;
+
+    // Track URL changes to invalidate cached PDF
+    if (currentUrlRef.current !== url) {
+      if (pdfDocRef.current) {
+        pdfDocRef.current.destroy();
+        pdfDocRef.current = null;
+      }
+      currentUrlRef.current = url;
+    }
 
     const renderPdf = async () => {
       if (!canvasRef.current || !containerRef.current) return;
+      if (isCancelled) return;
+
+      // Check container has valid dimensions
+      const containerHeight = containerRef.current.clientHeight;
+      const containerWidth = containerRef.current.clientWidth;
+      if (containerHeight === 0 || containerWidth === 0) {
+        // Container not ready, retry shortly
+        if (!isCancelled) {
+          setTimeout(renderPdf, 100);
+        }
+        return;
+      }
 
       // Cancel any previous render task
       if (renderTaskRef.current) {
-        renderTaskRef.current.cancel();
+        try {
+          renderTaskRef.current.cancel();
+        } catch {
+          // Ignore cancellation errors
+        }
         renderTaskRef.current = null;
       }
 
+      if (isCancelled) return;
+
       try {
-        const pdf = await pdfjsLib.getDocument(url).promise;
+        // Load PDF document if not already loaded
+        if (!pdfDocRef.current) {
+          loadingTask = pdfjsLib.getDocument(url);
+          const pdf = await loadingTask.promise;
+          if (isCancelled) {
+            pdf.destroy();
+            return;
+          }
+          pdfDocRef.current = pdf;
+          loadingTask = null;
+        }
+
         if (isCancelled) return;
 
-        const page = await pdf.getPage(1);
+        const page = await pdfDocRef.current.getPage(1);
         if (isCancelled) return;
 
-        pageRef.current = page;
-
-        const containerHeight = containerRef.current.clientHeight;
         const unscaledViewport = page.getViewport({ scale: 1 });
 
-        // Base scale to fit container with padding
-        const calculatedBaseScale =
-          (containerHeight / unscaledViewport.height) * 0.96;
+        // containerHeight/Width already accounts for padding due to box-sizing: border-box
+        const availableWidth = containerWidth;
+        const availableHeight = containerHeight;
+
+        // Calculate scale to fit height and width, use the smaller one
+        const scaleByHeight = (availableHeight / unscaledViewport.height) * 1.0;
+        const scaleByWidth = (availableWidth / unscaledViewport.width) * 0.85;
+        const calculatedBaseScale = Math.min(scaleByHeight, scaleByWidth);
         baseScaleRef.current = calculatedBaseScale;
 
-        const scale = calculatedBaseScale * zoom;
-        const viewport = page.getViewport({ scale });
+        // Display scale - what the user sees
+        const displayScale = calculatedBaseScale * zoom;
+
+        // Render at 1.5x for crisp but not oversharpened text
+        const deviceRatio = window.devicePixelRatio || 1;
+        const outputScale = Math.max(1.5, deviceRatio);
+
+        // Render viewport - PDF.js renders at this resolution
+        const renderScale = displayScale * outputScale;
+        const renderViewport = page.getViewport({ scale: renderScale });
+
+        // Display viewport - used for CSS sizing
+        const displayViewport = page.getViewport({ scale: displayScale });
 
         const canvas = canvasRef.current;
-        const context = canvas.getContext("2d");
+        if (!canvas || isCancelled) return;
+
+        // Get a fresh 2D context - this resets any transforms
+        const context = canvas.getContext("2d", { alpha: false });
         if (!context || isCancelled) return;
 
-        // Reset canvas and context before rendering
-        canvas.height = viewport.height;
-        canvas.width = viewport.width;
-        context.clearRect(0, 0, canvas.width, canvas.height);
-        context.setTransform(1, 0, 0, 1, 0, 0);
+        // Canvas internal size matches the high-res render
+        canvas.width = Math.floor(renderViewport.width);
+        canvas.height = Math.floor(renderViewport.height);
 
+        // CSS size is the intended display size (browser downscales for us)
+        canvas.style.width = `${displayViewport.width}px`;
+        canvas.style.height = `${displayViewport.height}px`;
+
+        // Reset canvas transform and clear with white background
+        context.setTransform(1, 0, 0, 1, 0, 0);
+        context.fillStyle = "#ffffff";
+        context.fillRect(0, 0, canvas.width, canvas.height);
+
+        if (isCancelled) return;
+
+        // Render using the high-resolution viewport
         const renderTask = page.render({
           canvasContext: context,
-          viewport: viewport,
-          canvas: canvas,
+          viewport: renderViewport,
+          background: "white",
         });
         renderTaskRef.current = renderTask;
 
         await renderTask.promise;
+        renderTaskRef.current = null;
+
+        if (isCancelled) return;
+
+        // Center scroll horizontally if content overflows
+        if (scrollAreaRef.current) {
+          const scrollArea = scrollAreaRef.current;
+          const scrollWidth = scrollArea.scrollWidth;
+          const clientWidthNow = scrollArea.clientWidth;
+          if (scrollWidth > clientWidthNow) {
+            scrollArea.scrollLeft = (scrollWidth - clientWidthNow) / 2;
+          }
+        }
 
         // Update scrollbar after render
-        setTimeout(updateScrollbar, 50);
-      } catch (error) {
-        console.error("Error rendering PDF:", error);
+        updateScrollbar();
+      } catch (error: any) {
+        // Ignore cancellation errors
+        if (error?.name !== "RenderingCancelledException") {
+          console.error("Error rendering PDF:", error);
+        }
       }
     };
 
-    setTimeout(renderPdf, 50);
+    // Small delay to ensure container is laid out
+    const timeoutId = setTimeout(renderPdf, 50);
 
-    const handleResize = () => setTimeout(renderPdf, 50);
+    const handleResize = () => {
+      if (!isCancelled) {
+        renderPdf();
+      }
+    };
     window.addEventListener("resize", handleResize);
+
     return () => {
       isCancelled = true;
-      if (renderTaskRef.current) {
-        renderTaskRef.current.cancel();
+      clearTimeout(timeoutId);
+
+      // Cancel any in-progress loading
+      if (loadingTask) {
+        loadingTask.destroy();
       }
+
+      // Cancel any in-progress render
+      if (renderTaskRef.current) {
+        try {
+          renderTaskRef.current.cancel();
+        } catch {
+          // Ignore
+        }
+        renderTaskRef.current = null;
+      }
+
       window.removeEventListener("resize", handleResize);
     };
   }, [url, zoom, updateScrollbar]);
+
+  // Cleanup PDF document on unmount only
+  useEffect(() => {
+    return () => {
+      if (pdfDocRef.current) {
+        pdfDocRef.current.destroy();
+        pdfDocRef.current = null;
+      }
+    };
+  }, []);
 
   // Listen for scroll events in the PDF area
   useEffect(() => {

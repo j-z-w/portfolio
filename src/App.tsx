@@ -32,7 +32,7 @@ const projects: Project[] = [
     title: "REDIS-COMPATIBLE STORE",
     tag: "RUST",
     description:
-      "High-performance in-memory data store with Redis protocol compatibility built for Arbot to replace direct SQL database calls. Rust-based server exploring SIMD-accelerated parsing, lock-free data structures (DashMap), and dual-protocol support (TCP/WebSocket). Custom command set for opportunity lifecycle management with pub/sub notifications. Designed as a real-time complement to PostgreSQL for sub-millisecond state queries. (Work in Progress)",
+      "Developing a high-performance in-memory data store with Redis protocol compatibility to support real-time arbitrage detection infrastructure.",
     tags: ["RUST", "REDIS PROTOCOL", "WEBSOCKETS", "LOCK-FREE"],
   },
   {
@@ -87,7 +87,7 @@ const decode = (codes: number[]): string => {
 
 function App() {
   const [activePreview, setActivePreview] = useState<PreviewType>("arbitrage");
-  const [hiddenScrollbar, setHiddenScrollbar] = useState(false);
+  const [, setHiddenScrollbar] = useState(false);
   const isScrolling = useRef(false);
   const currentSection = useRef(0);
   const sections = useRef<HTMLElement[]>([]);
@@ -129,20 +129,75 @@ function App() {
     );
 
     // Detect which section we're actually on when page loads
-    const detectCurrentSection = () => {
+    // direction: 1 = scrolling down, -1 = scrolling up, 0 = no direction (initial load)
+    const detectCurrentSection = (direction: number = 0) => {
       const scrollY = window.scrollY;
       const viewportHeight = window.innerHeight;
-      const scrollCenter = scrollY + viewportHeight / 2;
 
       for (let i = 0; i < sections.current.length; i++) {
         const section = sections.current[i];
         const sectionTop = section.offsetTop;
         const sectionBottom = sectionTop + section.offsetHeight;
 
-        if (scrollCenter >= sectionTop && scrollCenter < sectionBottom) {
+        // Check if section is significantly visible in viewport
+        const visibleTop = Math.max(sectionTop, scrollY);
+        const visibleBottom = Math.min(sectionBottom, scrollY + viewportHeight);
+        const visibleHeight = Math.max(0, visibleBottom - visibleTop);
+        const visiblePercent = visibleHeight / viewportHeight;
+
+        // If this section covers most of the viewport, we're on it
+        if (visiblePercent > 0.6) {
           currentSection.current = i;
-          break;
+          return;
         }
+      }
+
+      // If no section covers >60% of viewport, we're between sections
+      // Find all partially visible sections and pick based on direction
+      if (direction !== 0) {
+        const viewportTop = scrollY;
+        const viewportBottom = scrollY + viewportHeight;
+
+        // Find all sections that are at least partially visible
+        const visibleSections: number[] = [];
+        for (let i = 0; i < sections.current.length; i++) {
+          const section = sections.current[i];
+          const sectionTop = section.offsetTop;
+          const sectionBottom = sectionTop + section.offsetHeight;
+
+          // Section is visible if it overlaps with viewport
+          if (sectionBottom > viewportTop && sectionTop < viewportBottom) {
+            visibleSections.push(i);
+          }
+        }
+
+        if (visibleSections.length > 0) {
+          if (direction > 0) {
+            // Scrolling down - go to the highest indexed visible section (further down the page)
+            currentSection.current =
+              visibleSections[visibleSections.length - 1];
+          } else {
+            // Scrolling up - go to the lowest indexed visible section (higher up the page)
+            currentSection.current = visibleSections[0];
+          }
+          return;
+        }
+      } else {
+        // No direction - use scroll center to find closest
+        const scrollCenter = scrollY + viewportHeight / 2;
+        let closestSection = 0;
+        let closestDistance = Infinity;
+
+        for (let i = 0; i < sections.current.length; i++) {
+          const section = sections.current[i];
+          const sectionCenter = section.offsetTop + section.offsetHeight / 2;
+          const distance = Math.abs(scrollCenter - sectionCenter);
+          if (distance < closestDistance) {
+            closestDistance = distance;
+            closestSection = i;
+          }
+        }
+        currentSection.current = closestSection;
       }
     };
 
@@ -154,18 +209,11 @@ function App() {
     setTimeout(detectCurrentSection, 150);
 
     // And on window load
-    window.addEventListener("load", detectCurrentSection);
+    window.addEventListener("load", () => detectCurrentSection());
 
     let wheelTimeout: number;
-    let hasDetectedInitialSection = false;
 
     const handleWheel = (e: WheelEvent) => {
-      // Detect section on first wheel event (after scroll restoration)
-      if (!hasDetectedInitialSection) {
-        detectCurrentSection();
-        hasDetectedInitialSection = true;
-      }
-
       // Check if we're inside the PDF area
       const eventTarget = e.target as HTMLElement;
       const pdfScrollArea = eventTarget.closest(".pdf-scroll-area");
@@ -196,15 +244,35 @@ function App() {
 
       wheelTimeout = window.setTimeout(() => {
         const direction = e.deltaY > 0 ? 1 : -1;
-        const nextSection = Math.max(
-          0,
-          Math.min(
-            sections.current.length - 1,
-            currentSection.current + direction,
-          ),
-        );
 
-        if (nextSection !== currentSection.current) {
+        // Get current scroll position to check if we're aligned to a section
+        const scrollY = window.scrollY;
+        const currentSectionElement = sections.current[currentSection.current];
+        const isAlignedToSection =
+          currentSectionElement &&
+          Math.abs(scrollY - currentSectionElement.offsetTop) < 10;
+
+        // Detect current section based on scroll direction
+        detectCurrentSection(direction);
+
+        let nextSection: number;
+
+        if (isAlignedToSection) {
+          // We're aligned to a section, so move to the next/prev one
+          nextSection = Math.max(
+            0,
+            Math.min(
+              sections.current.length - 1,
+              currentSection.current + direction,
+            ),
+          );
+        } else {
+          // We're between sections - detectCurrentSection already found the right target
+          // Just scroll to the current detected section
+          nextSection = currentSection.current;
+        }
+
+        if (nextSection !== currentSection.current || !isAlignedToSection) {
           currentSection.current = nextSection;
           const target = sections.current[nextSection].offsetTop;
           smoothScrollTo(target, 800);
@@ -262,6 +330,37 @@ function App() {
     };
   }, []);
 
+  // Measure exact expansion distance for stack overlay animation
+  // Also set accurate viewport height to fix 100vh issues on some devices
+  useEffect(() => {
+    const updateLayoutVariables = () => {
+      // Set accurate viewport height
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty("--vh", `${vh}px`);
+
+      // Measure exact distance the overlay needs to expand to reach about-cell top
+      const aboutCell = document.querySelector(".about-cell");
+      const stackOverlay = document.querySelector(".stack-overlay");
+      if (aboutCell && stackOverlay) {
+        const aboutRect = aboutCell.getBoundingClientRect();
+        const overlayRect = stackOverlay.getBoundingClientRect();
+        // Distance from current overlay top to about-cell top
+        const expansionHeight = overlayRect.top - aboutRect.top;
+        document.documentElement.style.setProperty(
+          "--about-cell-height",
+          `${expansionHeight}px`,
+        );
+      }
+    };
+
+    // Run on mount and after a short delay for layout to settle
+    updateLayoutVariables();
+    setTimeout(updateLayoutVariables, 100);
+
+    window.addEventListener("resize", updateLayoutVariables);
+    return () => window.removeEventListener("resize", updateLayoutVariables);
+  }, []);
+
   const handleResumeClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     const resumeSection = document.querySelector(".resume-section");
@@ -296,7 +395,7 @@ function App() {
 
   return (
     <>
-      <CustomScrollbar hidden={hiddenScrollbar} />
+      <CustomScrollbar hidden={false} />
       {/* TOP SECTION: THE GRID */}
       <section className="grid-section">
         <div className="grid-wrapper">
@@ -351,18 +450,22 @@ function App() {
                 <span>PYTHON</span>
                 <span>REACT / TS</span>
                 <span>RUST</span>
-                <span>DOCKER</span>
               </div>
               <span className="stack-hint">HOVER TO EXPAND</span>
             </div>
             <div className="stack-overlay">
+              <div className="stack-arrows stack-arrows-left">
+                <span className="rising-arrow">↑</span>
+              </div>
+              <div className="stack-arrows stack-arrows-right">
+                <span className="rising-arrow">↑</span>
+              </div>
               <div className="stack-overlay-content">
                 <span className="stack-label">CORE STACK:</span>
                 <span>GO (GOLANG)</span>
                 <span>PYTHON</span>
                 <span>REACT / TS</span>
                 <span>RUST</span>
-                <span>DOCKER</span>
               </div>
               <div className="stack-expanded">
                 <div className="stack-column">
@@ -408,6 +511,12 @@ function App() {
                 </div>
               </div>
               <span className="stack-hint">HOVER TO EXPAND</span>
+              <div className="stack-arrows stack-arrows-left">
+                <span className="rising-arrow">↑</span>
+              </div>
+              <div className="stack-arrows stack-arrows-right">
+                <span className="rising-arrow">↑</span>
+              </div>
             </div>
           </div>
 
@@ -543,18 +652,9 @@ function App() {
           >
             <h2 className="preview-title">Redis-Compatible Store (WIP)</h2>
             <p className="preview-desc">
-              High-performance in-memory data store with Redis protocol
-              compatibility built for Arbot to replace direct SQL database
-              calls. Rust-based server exploring SIMD-accelerated parsing,
-              lock-free data structures (DashMap), and dual-protocol support
-              (TCP/WebSocket). Custom command set for opportunity lifecycle
-              management with pub/sub notifications. Designed as a real-time
-              complement to PostgreSQL for sub-millisecond state queries.
-              <br />
-              <br />
-              <em style={{ color: "#888" }}>
-                This project is a work in progress for learning Rust.
-              </em>
+              Developing a high-performance in-memory data store with Redis
+              protocol compatibility to support real-time arbitrage detection
+              infrastructure.
             </p>
             <div className="preview-tags">
               <span className="tag">RUST</span>
@@ -650,9 +750,18 @@ function App() {
               {decode(obfuscatedContact.phone)}
             </a>
           </div>
+          <button
+            className="return-to-top-btn"
+            onClick={() => {
+              currentSection.current = 0;
+              smoothScrollTo(0, 800);
+            }}
+          >
+            ↑ RETURN TO TOP
+          </button>
         </div>
         <div className="resume-embed-wrapper">
-          <PdfViewer url="/resume.pdf" />
+          <PdfViewer url="/resume.pdf?v=3" />
         </div>
       </section>
     </>
