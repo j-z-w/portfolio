@@ -87,7 +87,7 @@ const decode = (codes: number[]): string => {
 
 function App() {
   const [activePreview, setActivePreview] = useState<PreviewType>("arbitrage");
-  const [, setHiddenScrollbar] = useState(false);
+  const [hiddenScrollbar, setHiddenScrollbar] = useState(false);
   const isScrolling = useRef(false);
   const currentSection = useRef(0);
   const sections = useRef<HTMLElement[]>([]);
@@ -288,13 +288,9 @@ function App() {
     };
   }, []);
 
-  // Track when to hide main scrollbar (in resume section with PDF at 200% zoom)
+  // Track when to hide main scrollbar (when PDF canvas reaches viewport right edge)
   useEffect(() => {
     const checkScrollbarVisibility = () => {
-      const pdfContainer = document.querySelector(".pdf-container");
-      const zoom = pdfContainer?.getAttribute("data-zoom");
-      const isMaxZoom = zoom && parseFloat(zoom) === 2;
-
       // Check if we're in the resume section
       const resumeSection = document.querySelector(".resume-section");
       if (!resumeSection) {
@@ -307,26 +303,51 @@ function App() {
         rect.top <= window.innerHeight / 2 &&
         rect.bottom >= window.innerHeight / 2;
 
-      setHiddenScrollbar(isInResumeSection && !!isMaxZoom);
+      if (!isInResumeSection) {
+        setHiddenScrollbar(false);
+        return;
+      }
+
+      // Check if PDF scrollbar track is close to viewport right edge
+      const pdfScrollbarTrack = document.querySelector(".pdf-scrollbar-track");
+      if (!pdfScrollbarTrack) {
+        // No PDF scrollbar visible, don't hide main scrollbar
+        setHiddenScrollbar(false);
+        return;
+      }
+
+      const trackRect = pdfScrollbarTrack.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      // Hide main scrollbar when PDF scrollbar is within 20px of viewport right edge
+      const scrollbarsOverlap = trackRect.right >= viewportWidth - 20;
+
+      setHiddenScrollbar(scrollbarsOverlap);
     };
 
-    // Watch for data-zoom attribute changes
+    // Watch for DOM changes in PDF container (including scrollbar appearing/disappearing)
     const pdfContainer = document.querySelector(".pdf-container");
     const observer = new MutationObserver(checkScrollbarVisibility);
 
     if (pdfContainer) {
       observer.observe(pdfContainer, {
         attributes: true,
-        attributeFilter: ["data-zoom"],
+        childList: true,
+        subtree: true,
       });
     }
 
     window.addEventListener("scroll", checkScrollbarVisibility);
+    window.addEventListener("resize", checkScrollbarVisibility);
+
+    // Also check on a short delay after zoom changes to catch React re-renders
+    const interval = setInterval(checkScrollbarVisibility, 100);
     checkScrollbarVisibility();
 
     return () => {
       observer.disconnect();
       window.removeEventListener("scroll", checkScrollbarVisibility);
+      window.removeEventListener("resize", checkScrollbarVisibility);
+      clearInterval(interval);
     };
   }, []);
 
@@ -353,9 +374,12 @@ function App() {
       }
     };
 
-    // Run on mount and after a short delay for layout to settle
+    // Run on mount and after multiple delays for layout to settle
+    // This ensures accurate measurements on all aspect ratios including 16:10
     updateLayoutVariables();
+    setTimeout(updateLayoutVariables, 50);
     setTimeout(updateLayoutVariables, 100);
+    setTimeout(updateLayoutVariables, 200);
 
     window.addEventListener("resize", updateLayoutVariables);
     return () => window.removeEventListener("resize", updateLayoutVariables);
@@ -395,7 +419,7 @@ function App() {
 
   return (
     <>
-      <CustomScrollbar hidden={false} />
+      <CustomScrollbar hidden={hiddenScrollbar} />
       {/* TOP SECTION: THE GRID */}
       <section className="grid-section">
         <div className="grid-wrapper">

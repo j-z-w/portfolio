@@ -106,14 +106,8 @@ function PdfViewer({ url }: PdfViewerProps) {
 
         const unscaledViewport = page.getViewport({ scale: 1 });
 
-        // containerHeight/Width already accounts for padding due to box-sizing: border-box
-        const availableWidth = containerWidth;
-        const availableHeight = containerHeight;
-
-        // Calculate scale to fit height and width, use the smaller one
-        const scaleByHeight = (availableHeight / unscaledViewport.height) * 1.0;
-        const scaleByWidth = (availableWidth / unscaledViewport.width) * 0.85;
-        const calculatedBaseScale = Math.min(scaleByHeight, scaleByWidth);
+        // Scale PDF to fill full container height (no top/bottom gaps)
+        const calculatedBaseScale = containerHeight / unscaledViewport.height;
         baseScaleRef.current = calculatedBaseScale;
 
         // Display scale - what the user sees
