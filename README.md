@@ -2,7 +2,7 @@
 
 My portfolio, pretty basic stuff. Spent too much time on it lol.
 
-[justinwei.ca](hhtp://justinwei.ca)
+[justinwei.ca](https://justinwei.ca/)
 
 ## License
 
