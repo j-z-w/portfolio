@@ -6,7 +6,7 @@ My portfolio, pretty basic stuff. Spent too much time on it lol.
 
 ## License
 
-This work is licensed under a [Creative Commons Attribution 4.0 International License](http://creativecommons.org/licenses/by/4.0/).
+This work is licensed under a [Creative Commons Attribution 4.0 International License](https://creativecommons.org/licenses/by/4.0/).
 
 You are free to:
 - **Share** — copy and redistribute the material in any medium or format
@@ -15,4 +15,4 @@ You are free to:
 Under the following terms:
 - **Attribution** — You must give appropriate credit, provide a link to the license, and indicate if changes were made.
 
-See the [full license text](http://creativecommons.org/licenses/by/4.0/legalcode) for details.
+See the [full license text](https://creativecommons.org/licenses/by/4.0/legalcode) for details.
